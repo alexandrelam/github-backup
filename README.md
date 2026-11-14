@@ -11,6 +11,28 @@ Back up all your GitHub repositories to an Ubuntu server, safely and resumably.
 
 Almost all of the work is done by `git` itself, so the script is mostly glue: list repos from the API, decide on full or shallow, run `git`, record progress. Bash with `curl` and `jq` does that with no build step and no runtime to install, and you can read and change it on the server. Parallelism comes from `xargs -P`, and `flock` prevents overlapping runs. A Go binary would be worth it only for much more logic than this.
 
+## Requirements
+
+| Requirement | Version | Notes |
+|---|---|---|
+| Linux server | Ubuntu 20.04 or newer | Any distro with GNU coreutils/findutils works |
+| `bash` | 4.4+ | Preinstalled on Ubuntu |
+| `git` | 2.20+ | `sudo apt install git` |
+| `curl` | 7.x+ | `sudo apt install curl` |
+| `jq` | 1.6+ | `sudo apt install jq` |
+| `flock`, GNU `xargs`/`find` | | From `util-linux` and `findutils`, preinstalled on Ubuntu |
+| GitHub token | | Fine-grained with *Contents: read-only* on all repos, or classic with `repo` scope (see [Token](#token)) |
+| Network | | Outbound HTTPS to `api.github.com` and `github.com` |
+| Disk space | | Roughly the total size of your repos; shallow backups of old repos take much less |
+
+Check everything at once:
+
+```bash
+bash --version | head -1; git --version; curl --version | head -1; jq --version; flock --version
+```
+
+The script also checks for `git`, `curl`, `jq` and `flock` when it starts, and stops with a clear message if one is missing.
+
 ## Setup
 
 ```bash
